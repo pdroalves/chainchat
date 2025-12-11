@@ -1,170 +1,148 @@
-# FHEVM React Template
+# ChainChat 🔐💬
 
-A minimal React frontend template for building FHEVM-enabled decentralized applications (dApps). This template provides a simple development interface for interacting with FHEVM smart contracts, specifically the `FHECounter.sol` contract.
+Encrypted blockchain chat rooms powered by Zama's fhEVM (Fully Homomorphic Encryption Virtual Machine).
 
-## 🚀 What is FHEVM?
+## Features
 
-FHEVM (Fully Homomorphic Encryption Virtual Machine) enables computation on encrypted data directly on Ethereum. This template demonstrates how to build dApps that can perform computations while keeping data private.
+- **🔐 End-to-End Encrypted Messages**: Messages are encrypted using FHE before being stored on-chain
+- **💬 Chat Rooms**: Create and join encrypted chat rooms as smart contracts
+- **👛 Wallet-Based Identity**: Sign in with your Ethereum wallet, optional aliases
+- **📋 Allow Lists**: Room owners control who can join
+- **🚫 Ban/Unban**: Room owners can ban malicious users
+- **⛓️ Fully On-Chain**: All data stored on Ethereum (Sepolia testnet)
 
-## ✨ Features
+## Architecture
 
-- **🔐 FHEVM Integration**: Built-in support for fully homomorphic encryption
-- **⚛️ React + Next.js**: Modern, performant frontend framework
-- **🎨 Tailwind CSS**: Utility-first styling for rapid UI development
-- **🔗 RainbowKit**: Seamless wallet connection and management
-- **🌐 Multi-Network Support**: Works on both Sepolia testnet and local Hardhat node
-- **📦 Monorepo Structure**: Organized packages for SDK, contracts, and frontend
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Next.js UI    │────▶│  fhEVM SDK      │────▶│  ChatRoom.sol   │
+│   (RainbowKit)  │     │  (Encryption)   │     │  (FHE Storage)  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                         │
+                                                         ▼
+                                                ┌─────────────────┐
+                                                │  FHE Coprocessor│
+                                                │  (Decryption)   │
+                                                └─────────────────┘
+```
 
-## 📋 Prerequinextjss
+## Quick Start
 
-Before you begin, ensure you have:
+### Prerequisites
 
-- **Node.js** (v18 or higher)
-- **pnpm** package manager
-- **MetaMask** browser extension
-- **Git** for cloning the repository
+- Node.js v18+
+- pnpm (`npm install -g pnpm`)
+- MetaMask browser extension
+- Sepolia testnet ETH
 
-## 🛠️ Quick Start
-
-### 1. Clone and Setup
+### Installation
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd fhevm-react-template
-
-# Initialize submodules (includes fhevm-hardhat-template)
+# Clone and install
+git clone <repo>
+cd ChainChat
 git submodule update --init --recursive
-
-# Install dependencies
 pnpm install
 ```
 
-### 2. Environment Configuration
+### Environment Setup
 
-Set up your Hardhat environment variables by following the [FHEVM documentation](https://docs.zama.ai/protocol/solidity-guides/getting-started/setup#set-up-the-hardhat-configuration-variables-optional):
+Create `.env.local` in `packages/nextjs/`:
 
-- `MNEMONIC`: Your wallet mnemonic phrase
-- `INFURA_API_KEY`: Your Infura API key for Sepolia
-
-### 3. Start Development Environment
-
-**Option A: Local Development (Recommended for testing)**
-
-```bash
-# Terminal 1: Start local Hardhat node
-pnpm chain
-# RPC URL: http://127.0.0.1:8545 | Chain ID: 31337
-
-# Terminal 2: Deploy contracts to localhost
-pnpm deploy:localhost
-
-# Terminal 3: Start the frontend
-pnpm start
+```env
+NEXT_PUBLIC_FACTORY_ADDRESS=0xa4b6cf76B95340cf91E7D7B1fEf3c925087aE965
+NEXT_PUBLIC_ALCHEMY_API_KEY=your_alchemy_key
 ```
 
-**Option B: Sepolia Testnet**
+### Running Locally
 
 ```bash
-# Deploy to Sepolia testnet
-pnpm deploy:sepolia
-
 # Start the frontend
 pnpm start
+
+# Open http://localhost:3000
 ```
 
-### 4. Connect MetaMask
+### Deploy Your Own Contracts
 
-1. Open [http://localhost:3000](http://localhost:3000) in your browser
-2. Click "Connect Wallet" and select MetaMask
-3. If using localhost, add the Hardhat network to MetaMask:
-   - **Network Name**: Hardhat Local
-   - **RPC URL**: `http://127.0.0.1:8545`
-   - **Chain ID**: `31337`
-   - **Currency Symbol**: `ETH`
+```bash
+# Set up Hardhat vars
+cd packages/hardhat
+npx hardhat vars set MNEMONIC
+npx hardhat vars set INFURA_API_KEY
 
-### ⚠️ Sepolia Production note
+# Deploy to Sepolia
+pnpm deploy:sepolia
+```
 
-- In production, `NEXT_PUBLIC_ALCHEMY_API_KEY` must be set (see `packages/nextjs/scaffold.config.ts`). The app throws if missing.
-- Ensure `packages/nextjs/contracts/deployedContracts.ts` points to your live contract addresses.
-- Optional: set `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` for better WalletConnect reliability.
-- Optional: add per-chain RPCs via `rpcOverrides` in `packages/nextjs/scaffold.config.ts`.
+## Contracts
 
-## 🔧 Troubleshooting
+| Contract | Address (Sepolia) |
+|----------|-------------------|
+| ChatRoomFactory | `0xa4b6cf76B95340cf91E7D7B1fEf3c925087aE965` |
 
-### Common MetaMask + Hardhat Issues
+### ChatRoomFactory
 
-When developing with MetaMask and Hardhat, you may encounter these common issues:
+Factory contract that deploys new chat rooms.
 
-#### ❌ Nonce Mismatch Error
+```solidity
+function createRoom(string name, address[] initialAllowList) returns (address)
+function getAllRooms() returns (address[])
+function getRoomsByOwner(address owner) returns (address[])
+```
 
-**Problem**: MetaMask tracks transaction nonces, but when you restart Hardhat, the node resets while MetaMask doesn't update its tracking.
+### ChatRoom
 
-**Solution**:
-1. Open MetaMask extension
-2. Select the Hardhat network
-3. Go to **Settings** → **Advanced**
-4. Click **"Clear Activity Tab"** (red button)
-5. This resets MetaMask's nonce tracking
+Individual encrypted chat room contract.
 
-#### ❌ Cached View Function Results
+```solidity
+// Encrypted messaging
+function sendMessage(externalEuint8[] encryptedInputs, bytes inputProof, string alias)
+function getMessageChunk(uint messageId, uint chunkIndex) returns (euint8)
 
-**Problem**: MetaMask caches smart contract view function results. After restarting Hardhat, you may see outdated data.
+// Room management
+function joinRoom()
+function addToAllowList(address[] addresses)
+function banUser(address user)
+function destroyRoom()
+```
 
-**Solution**:
-1. **Restart your entire browser** (not just refresh the page)
-2. MetaMask's cache is stored in extension memory and requires a full browser restart to clear
+## How FHE Encryption Works
 
-> 💡 **Pro Tip**: Always restart your browser after restarting Hardhat to avoid cache issues.
+1. **Encrypt**: User types message → fhEVM SDK encrypts each byte → `euint8[]` array
+2. **Store**: Encrypted chunks stored on-chain with `FHE.allow()` permissions
+3. **Decrypt**: Authorized users request decryption via FHE Gateway
+4. **Display**: Decrypted message displayed only to permitted users
 
-For more details, see the [MetaMask development guide](https://docs.metamask.io/wallet/how-to/run-devnet/).
+## Tech Stack
 
-## 📁 Project Structure
+- **Frontend**: Next.js 15, RainbowKit, Tailwind CSS
+- **Contracts**: Solidity 0.8.27, Hardhat, fhEVM
+- **FHE**: Zama fhEVM, @fhevm/solidity
+- **Package Manager**: pnpm monorepo
 
-This template uses a monorepo structure with three main packages:
+## Project Structure
 
 ```
-fhevm-react-template/
+ChainChat/
 ├── packages/
-│   ├── fhevm-hardhat-template/    # Smart contracts & deployment
-│   ├── fhevm-sdk/                 # FHEVM SDK package
-│   └── nextjs/                      # React frontend application
-└── scripts/                       # Build and deployment scripts
+│   ├── hardhat/           # Smart contracts
+│   │   ├── contracts/
+│   │   │   ├── ChatRoom.sol
+│   │   │   └── ChatRoomFactory.sol
+│   │   └── deploy/
+│   ├── fhevm-sdk/         # Zama FHE SDK
+│   └── nextjs/            # Frontend
+│       ├── app/
+│       ├── hooks/chainchat/
+│       └── components/
+└── README.md
 ```
 
-### Key Components
+## License
 
-#### 🔗 FHEVM Integration (`packages/nextjs/hooks/fhecounter-example/`)
-- **`useFHECounterWagmi.tsx`**: Example hook demonstrating FHEVM contract interaction
-- Essential hooks for FHEVM-enabled smart contract communication
-- Easily copyable to any FHEVM + React project
+GPL-3.0 - See [LICENSE](LICENSE)
 
-#### 🎣 Wallet Management (`packages/nextjs/hooks/helper/`)
-- MetaMask wallet provider hooks
-- Compatible with EIP-6963 standard
-- Easily adaptable for other wallet providers
+## Credits
 
-#### 🔧 Flexibility
-- Replace `ethers.js` with `Wagmi` or other React-friendly libraries
-- Modular architecture for easy customization
-- Support for multiple wallet providers
-
-## 📚 Additional Resources
-
-### Official Documentation
-- [FHEVM Documentation](https://docs.zama.ai/protocol/solidity-guides/) - Complete FHEVM guide
-- [FHEVM Hardhat Guide](https://docs.zama.ai/protocol/solidity-guides/development-guide/hardhat) - Hardhat integration
-- [Relayer SDK Documentation](https://docs.zama.ai/protocol/relayer-sdk-guides/) - SDK reference
-- [Environment Setup](https://docs.zama.ai/protocol/solidity-guides/getting-started/setup#set-up-the-hardhat-configuration-variables-optional) - MNEMONIC & API keys
-
-### Development Tools
-- [MetaMask + Hardhat Setup](https://docs.metamask.io/wallet/how-to/run-devnet/) - Local development
-- [React Documentation](https://reactjs.org/) - React framework guide
-
-### Community & Support
-- [FHEVM Discord](https://discord.com/invite/zama) - Community support
-- [GitHub Issues](https://github.com/zama-ai/fhevm-react-template/issues) - Bug reports & feature requests
-
-## 📄 License
-
-This project is licensed under the **BSD-3-Clause-Clear License**. See the [LICENSE](LICENSE) file for details.
+Built with [Zama's fhEVM](https://github.com/zama-ai/fhevm) for confidential smart contracts.

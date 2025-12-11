@@ -5,8 +5,8 @@ import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/helper/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Zama Template",
-  description: "Built with FHEVM",
+  title: "ChainChat - Encrypted Blockchain Messaging",
+  description: "Private chat rooms powered by fhEVM encryption on Ethereum",
 });
 
 const DappWrapper = ({ children }: { children: React.ReactNode }) => {
