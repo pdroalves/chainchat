@@ -528,50 +528,56 @@ export const ChainChat = () => {
   return (
     <div className={shellClass + " " + shellBg + " flex flex-col min-h-screen"}>
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl">
-        <div className="mx-auto max-w-4xl px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl safe-area-top">
+        <div className="mx-auto max-w-4xl px-3 sm:px-4 py-2 sm:py-3">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             {/* Left: Back + Room info */}
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <button
                 onClick={navigateToHome}
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition flex-shrink-0"
+                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition flex-shrink-0"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                 </svg>
               </button>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400/20 to-purple-400/20 border border-white/10 flex items-center justify-center flex-shrink-0">
+              {/* Room icon - hidden on small mobile */}
+              <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400/20 to-purple-400/20 border border-white/10 items-center justify-center flex-shrink-0">
                 <span className="text-lg font-medium text-white/60">#</span>
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-semibold text-white truncate">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <h1 className="text-base sm:text-lg font-semibold text-white truncate">
                     {room.roomInfo?.name || "Loading..."}
                   </h1>
                   {room.isOwner && (
-                    <span className="text-[10px] bg-gradient-to-r from-cyan-400/20 to-purple-400/20 text-cyan-200 px-2 py-0.5 rounded-full border border-cyan-300/20 flex-shrink-0">
+                    <span className="hidden xs:inline text-[9px] sm:text-[10px] bg-gradient-to-r from-cyan-400/20 to-purple-400/20 text-cyan-200 px-1.5 sm:px-2 py-0.5 rounded-full border border-cyan-300/20 flex-shrink-0">
                       Owner
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-white/40">
-                  <span className="font-mono truncate">{selectedRoom?.slice(0, 8)}...{selectedRoom?.slice(-6)}</span>
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-white/40">
+                  {/* Mobile: shorter address */}
+                  <span className="font-mono truncate sm:hidden">{selectedRoom?.slice(0, 6)}...{selectedRoom?.slice(-4)}</span>
+                  <span className="font-mono truncate hidden sm:inline">{selectedRoom?.slice(0, 8)}...{selectedRoom?.slice(-6)}</span>
                   <button 
                     onClick={handleCopyRoomAddress}
-                    className="hover:text-cyan-300 transition"
+                    className="hover:text-cyan-300 transition p-0.5"
                     title="Copy address"
                   >
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
                     </svg>
                   </button>
+                  {/* Mobile stats inline */}
+                  <span className="sm:hidden text-white/20">•</span>
+                  <span className="sm:hidden text-white/40">{room.members.length}👤</span>
                 </div>
               </div>
             </div>
 
             {/* Right: Stats + Block timer + Settings */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               {/* Stats - hidden on mobile */}
               <div className="hidden md:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-white/50">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
@@ -581,14 +587,13 @@ export const ChainChat = () => {
                 <span>{room.roomInfo?.messageCount || 0}</span>
               </div>
 
-              {/* Block timer */}
-              <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-xs">
-                <span className={`w-2 h-2 rounded-full ${
+              {/* Block timer - compact on mobile */}
+              <div className="flex items-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-full bg-white/5 border border-white/10 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs">
+                <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                   timeSinceBlock < 5 ? "bg-emerald-400 animate-pulse" : 
                   timeSinceBlock < 15 ? "bg-amber-400" : "bg-red-400"
                 }`} />
-                <span className="font-mono text-white/60">#{blockNumber?.toString() || "—"}</span>
-                <span className="text-white/30">•</span>
+                <span className="font-mono text-white/60 hidden sm:inline">#{blockNumber?.toString() || "—"}</span>
                 <span className="text-white/40">{timeSinceBlock}s</span>
               </div>
 
@@ -596,7 +601,7 @@ export const ChainChat = () => {
               {room.isOwner && (
                 <button
                   onClick={() => setOwnerModalOpen(true)}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition"
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition"
                   title="Room settings"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -679,14 +684,27 @@ export const ChainChat = () => {
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 scrollbar-thin">
-        <div className={containerClass + " space-y-4"}>
+      <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 scrollbar-thin">
+        <div className="mx-auto max-w-4xl space-y-3 sm:space-y-4">
           {room.isLoading ? (
-            <p className="text-white/40 text-center text-sm">Loading...</p>
+            <div className="flex items-center justify-center py-12">
+              <div className="flex items-center gap-3 text-white/40">
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span className="text-sm">Loading messages...</span>
+              </div>
+            </div>
           ) : room.messages.length === 0 ? (
-            <div className={"p-6 text-center " + cardClass}>
-              <p className="text-sm text-white/60">No messages yet</p>
-              <p className="text-xs text-white/40 mt-2">Send the first message to start the thread.</p>
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                </svg>
+              </div>
+              <p className="text-sm text-white/50">No messages yet</p>
+              <p className="text-xs text-white/30 mt-1">Be the first to say something</p>
             </div>
           ) : (
             room.messages.map((msg) => {
@@ -697,26 +715,26 @@ export const ChainChat = () => {
                   className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[82%] sm:max-w-[70%] rounded-2xl px-4 py-3 border backdrop-blur-xl ${
+                    className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 border backdrop-blur-xl ${
                       isOwn
                         ? "bg-gradient-to-br from-cyan-300/15 to-purple-400/10 border-cyan-300/20"
                         : "bg-white/5 border-white/10"
                     }`}
                   >
                     {!isOwn && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-cyan-200">
-                          {msg.senderAlias || "Anonymous"}
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                        <span className="text-xs sm:text-sm font-medium text-cyan-200 truncate max-w-[120px] sm:max-w-none">
+                          {msg.senderAlias || "Anon"}
                         </span>
-                        <span className="text-xs text-white/40 font-mono">
-                          {msg.sender.slice(0, 6)}...
+                        <span className="text-[10px] sm:text-xs text-white/40 font-mono">
+                          {msg.sender.slice(0, 4)}..
                         </span>
                       </div>
                     )}
                     <p className="text-white/90 leading-relaxed text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                    <div className="flex items-center justify-end gap-2 mt-2 text-[11px] text-white/35">
-                      <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
-                      <span className="font-mono">#{msg.blockNumber}</span>
+                    <div className="flex items-center justify-end gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] text-white/30">
+                      <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="hidden sm:inline font-mono">#{msg.blockNumber}</span>
                     </div>
                   </div>
                 </div>
@@ -727,12 +745,12 @@ export const ChainChat = () => {
           {/* Pending messages */}
           {room.pendingMessages.map((p) => (
             <div key={p.id} className="flex justify-end">
-              <div className="max-w-[82%] sm:max-w-[70%] rounded-2xl px-4 py-3 bg-cyan-300/10 border border-cyan-300/20 opacity-80">
+              <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 bg-cyan-300/10 border border-cyan-300/20 opacity-80">
                 <p className="text-white/90 text-sm whitespace-pre-wrap break-words">{p.content}</p>
-                <div className="flex items-center justify-end gap-2 mt-2 text-[11px] text-cyan-200/80">
-                  <span className="inline-flex items-center gap-2">
+                <div className="flex items-center justify-end gap-2 mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] text-cyan-200/80">
+                  <span className="inline-flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-200 animate-pulse" />
-                    Pending…
+                    Sending...
                   </span>
                 </div>
               </div>
@@ -743,40 +761,54 @@ export const ChainChat = () => {
 
       {/* Input */}
       {room.isMember && (
-        <div className="sticky bottom-0 border-t border-white/10 bg-slate-950/40 backdrop-blur-xl px-4 sm:px-6 py-4">
-          <div className={containerClass}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+        <div className="sticky bottom-0 border-t border-white/10 bg-slate-950/80 backdrop-blur-2xl px-3 sm:px-4 py-3 sm:py-4 safe-area-bottom">
+          <div className="mx-auto max-w-4xl">
+            {/* Alias row - collapsible on mobile */}
+            <div className="hidden sm:flex items-center justify-between gap-2 mb-3">
               <input
                 type="text"
                 value={aliasInput}
                 onChange={(e) => setAliasInput(e.target.value)}
                 placeholder="Alias (optional)"
-                className={"w-full sm:w-56 " + inputClass + " py-2"}
+                className={"w-48 " + inputClass + " py-2 text-sm"}
                 maxLength={32}
               />
-              <span className="text-xs text-white/40 self-center">
-                Wallet: <span className="font-mono text-white/60">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+              <span className="text-xs text-white/40">
+                <span className="font-mono text-white/60">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
               </span>
             </div>
-            <div className="flex gap-3">
+            {/* Message input */}
+            <div className="flex gap-2 sm:gap-3">
               <input
                 type="text"
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder={room.isSending ? "Encrypting..." : "Type a message…"}
+                placeholder={room.isSending ? "Encrypting..." : "Message…"}
                 disabled={room.isSending}
-                className={inputClass + " flex-1"}
+                className={inputClass + " flex-1 py-2.5 sm:py-3 text-sm sm:text-base"}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!messageInput.trim() || room.isSending}
-                className={primaryBtn + " px-5"}
+                className={primaryBtn + " px-3 sm:px-5 py-2.5 sm:py-3"}
               >
-                {room.isSending ? "Sending…" : "Send"}
+                {room.isSending ? (
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Send</span>
+                    <svg className="w-5 h-5 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                    </svg>
+                  </>
+                )}
               </button>
             </div>
-            <p className="text-xs text-white/35 mt-2">
+            <p className="hidden sm:block text-xs text-white/30 mt-2">
               Messages are encrypted with FHE before being stored on-chain.
             </p>
           </div>
@@ -838,7 +870,7 @@ function OwnerControlsModal(props: {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
       role="dialog"
       aria-modal="true"
     >
@@ -848,12 +880,14 @@ function OwnerControlsModal(props: {
         aria-label="Close owner controls"
       />
 
-      <div className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-slate-900/95 backdrop-blur-2xl shadow-2xl shadow-black/60 overflow-hidden">
+      <div className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl border border-white/10 bg-slate-900/95 backdrop-blur-2xl shadow-2xl shadow-black/60 overflow-hidden max-h-[90vh] sm:max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-white/[0.02]">
-          <div>
-            <h3 className="text-lg font-semibold text-white">Room settings</h3>
-            <p className="text-xs text-white/40 mt-0.5">Manage access and room lifecycle</p>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-white/10 bg-white/[0.02]">
+          {/* Mobile drag handle */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-white/20 sm:hidden" />
+          <div className="pt-2 sm:pt-0">
+            <h3 className="text-base sm:text-lg font-semibold text-white">Room settings</h3>
+            <p className="text-xs text-white/40 mt-0.5 hidden sm:block">Manage access and room lifecycle</p>
           </div>
           <button
             onClick={onClose}
@@ -863,7 +897,7 @@ function OwnerControlsModal(props: {
           </button>
         </div>
 
-        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto scrollbar-thin">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto scrollbar-thin" style={{ maxHeight: 'calc(90vh - 70px)' }}>
           {/* Room name */}
           <section>
             <p className="text-sm font-medium text-white">Room name</p>

@@ -90,11 +90,19 @@
     margin: 1rem 0;
   }
 
+  html {
+    /* Enable safe area insets for iOS */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
   body {
     min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
     font-family: "Telegraf", ui-sans-serif, system-ui, -apple-system, Segoe UI,
       Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji",
       "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1,
@@ -104,6 +112,25 @@
     margin-bottom: 0.5rem;
     line-height: 1;
   }
+
+  /* Prevent text size adjust on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Disable pull-to-refresh on mobile */
+  body {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Safe area utilities for mobile */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 :root,
