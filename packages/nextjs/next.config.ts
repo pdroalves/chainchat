@@ -16,14 +16,20 @@ const nextConfig: NextConfig = {
   },
 };
 
-const isIpfs = process.env.NEXT_PUBLIC_IPFS_BUILD === "true";
+const isStaticExport = process.env.NEXT_PUBLIC_IPFS_BUILD === "true";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
-if (isIpfs) {
+if (isStaticExport) {
   nextConfig.output = "export";
   nextConfig.trailingSlash = true;
   nextConfig.images = {
     unoptimized: true,
   };
+  // Set basePath for GitHub Pages subdirectory deployment (e.g., /chainchat)
+  if (basePath) {
+    nextConfig.basePath = basePath;
+    nextConfig.assetPrefix = basePath;
+  }
 }
 
 module.exports = nextConfig;
