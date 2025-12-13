@@ -57,6 +57,13 @@ const FACTORY_ABI = [
 export const CHATROOM_ABI = [
   {
     inputs: [],
+    name: "isOpenJoin",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "name",
     outputs: [{ name: "", type: "string" }],
     stateMutability: "view",
@@ -100,6 +107,13 @@ export const CHATROOM_ABI = [
   {
     inputs: [],
     name: "getMembers",
+    outputs: [{ name: "", type: "address[]" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getAllowList",
     outputs: [{ name: "", type: "address[]" }],
     stateMutability: "view",
     type: "function",
@@ -156,6 +170,26 @@ export const CHATROOM_ABI = [
     type: "function",
   },
   {
+    inputs: [{ name: "messageId", type: "uint256" }],
+    name: "getMessageHandles",
+    outputs: [{ name: "handles", type: "bytes32[]" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "startId", type: "uint256" },
+      { name: "count", type: "uint256" },
+    ],
+    name: "getMessageHandlesRange",
+    outputs: [
+      { name: "handles", type: "bytes32[]" },
+      { name: "chunkCounts", type: "uint256[]" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "joinRoom",
     outputs: [],
@@ -188,6 +222,37 @@ export const CHATROOM_ABI = [
     type: "function",
   },
   {
+    inputs: [{ name: "addresses", type: "address[]" }],
+    name: "removeFromAllowList",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "openJoin", type: "bool" }],
+    name: "setJoinMode",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "", type: "address" }],
+    name: "decryptAccessCursor",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "startMessageId", type: "uint256" },
+      { name: "messageCountToProcess", type: "uint256" },
+    ],
+    name: "grantDecryptAccess",
+    outputs: [{ name: "newCursor", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [{ name: "user", type: "address" }],
     name: "banUser",
     outputs: [],
@@ -197,6 +262,13 @@ export const CHATROOM_ABI = [
   {
     inputs: [],
     name: "destroyRoom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "string", name: "newName", type: "string" }],
+    name: "setName",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -218,28 +290,33 @@ export const useChatRoomFactory = (factoryAddress: string | undefined) => {
   const [isCreating, setIsCreating] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Validate factory address - must be non-empty and valid format
+  const validFactoryAddress = factoryAddress && factoryAddress.startsWith("0x") && factoryAddress.length === 42
+    ? (factoryAddress as `0x${string}`)
+    : undefined;
+
   // Read all rooms
   const { data: allRooms, refetch: refetchRooms } = useReadContract({
-    address: factoryAddress as `0x${string}`,
+    address: validFactoryAddress,
     abi: FACTORY_ABI,
     functionName: "getAllRooms",
-    query: { enabled: !!factoryAddress },
+    query: { enabled: !!validFactoryAddress },
   });
 
   // Read rooms by owner
   const { data: myRooms, refetch: refetchMyRooms } = useReadContract({
-    address: factoryAddress as `0x${string}`,
+    address: validFactoryAddress,
     abi: FACTORY_ABI,
     functionName: "getRoomsByOwner",
     args: accounts?.[0] ? [accounts[0] as `0x${string}`] : undefined,
-    query: { enabled: !!factoryAddress && !!accounts?.[0] },
+    query: { enabled: !!validFactoryAddress && !!accounts?.[0] },
   });
 
   // Create room
   const createRoom = useCallback(
     async (name: string, initialAllowList: string[] = []) => {
-      if (!ethersSigner || !factoryAddress) {
-        setMessage("No signer available");
+      if (!ethersSigner || !validFactoryAddress) {
+        setMessage(validFactoryAddress ? "No signer available" : "Factory address not configured");
         return null;
       }
 
@@ -247,7 +324,7 @@ export const useChatRoomFactory = (factoryAddress: string | undefined) => {
       setMessage("Creating room...");
 
       try {
-        const contract = new ethers.Contract(factoryAddress, FACTORY_ABI, ethersSigner);
+        const contract = new ethers.Contract(validFactoryAddress, FACTORY_ABI, ethersSigner);
         const tx = await contract.createRoom(name, initialAllowList);
         setMessage("Waiting for confirmation...");
         const receipt = await tx.wait();
@@ -274,7 +351,20 @@ export const useChatRoomFactory = (factoryAddress: string | undefined) => {
         setMessage("Room created but address not found in logs");
         return null;
       } catch (err) {
-        setMessage(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        // Parse common errors into user-friendly messages
+        if (errorMsg.includes("estimateGas") || errorMsg.includes("CALL_EXCEPTION")) {
+          setMessage("Transaction failed. Please make sure your wallet is connected to the correct network (Localhost 8545 for local dev).");
+        } else if (errorMsg.includes("user rejected") || errorMsg.includes("User denied")) {
+          setMessage("Transaction cancelled by user.");
+        } else if (errorMsg.includes("insufficient funds")) {
+          setMessage("Insufficient funds for transaction.");
+        } else {
+          // Truncate long error messages
+          const shortMsg = errorMsg.length > 100 ? errorMsg.slice(0, 100) + "..." : errorMsg;
+          setMessage(`Error: ${shortMsg}`);
+        }
+        console.error("Create room error:", err);
         return null;
       } finally {
         setIsCreating(false);

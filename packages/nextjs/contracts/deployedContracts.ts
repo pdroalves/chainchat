@@ -6,35 +6,54 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 
 const deployedContracts = {
   31337: {
-    FHECounter: {
-      address: "0x40e8Aa088739445BC3a3727A724F56508899f65B",
+    ChatRoomFactory: {
+      address: "0x708A2Ea0D218043b10455c19D22954a918A059B2",
       abi: [
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "roomAddress",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "timestamp",
+              type: "uint256",
+            },
+          ],
+          name: "RoomCreated",
+          type: "event",
+        },
         {
           inputs: [
             {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
-            },
-            {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
+              internalType: "address",
+              name: "room",
+              type: "address",
             },
           ],
-          name: "decrement",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "getCount",
+          name: "checkIsValidRoom",
           outputs: [
             {
-              internalType: "euint32",
+              internalType: "bool",
               name: "",
-              type: "bytes32",
+              type: "bool",
             },
           ],
           stateMutability: "view",
@@ -43,24 +62,43 @@ const deployedContracts = {
         {
           inputs: [
             {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
+              internalType: "string",
+              name: "_name",
+              type: "string",
             },
             {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
+              internalType: "address[]",
+              name: "_initialAllowList",
+              type: "address[]",
             },
           ],
-          name: "increment",
-          outputs: [],
+          name: "createRoom",
+          outputs: [
+            {
+              internalType: "address",
+              name: "roomAddress",
+              type: "address",
+            },
+          ],
           stateMutability: "nonpayable",
           type: "function",
         },
         {
           inputs: [],
-          name: "protocolId",
+          name: "getAllRooms",
+          outputs: [
+            {
+              internalType: "address[]",
+              name: "",
+              type: "address[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getRoomCount",
           outputs: [
             {
               internalType: "uint256",
@@ -68,44 +106,144 @@ const deployedContracts = {
               type: "uint256",
             },
           ],
-          stateMutability: "pure",
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "getRoomsByOwner",
+          outputs: [
+            {
+              internalType: "address[]",
+              name: "",
+              type: "address[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "isValidRoom",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "rooms",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "roomsByOwner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 3,
+      deployedOnBlock: 17,
     },
   },
   11155111: {
-    FHECounter: {
-      address: "0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e",
+    ChatRoomFactory: {
+      address: "0xa4b6cf76B95340cf91E7D7B1fEf3c925087aE965",
       abi: [
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "roomAddress",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "timestamp",
+              type: "uint256",
+            },
+          ],
+          name: "RoomCreated",
+          type: "event",
+        },
         {
           inputs: [
             {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
-            },
-            {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
+              internalType: "address",
+              name: "room",
+              type: "address",
             },
           ],
-          name: "decrement",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "getCount",
+          name: "checkIsValidRoom",
           outputs: [
             {
-              internalType: "euint32",
+              internalType: "bool",
               name: "",
-              type: "bytes32",
+              type: "bool",
             },
           ],
           stateMutability: "view",
@@ -114,24 +252,43 @@ const deployedContracts = {
         {
           inputs: [
             {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
+              internalType: "string",
+              name: "_name",
+              type: "string",
             },
             {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
+              internalType: "address[]",
+              name: "_initialAllowList",
+              type: "address[]",
             },
           ],
-          name: "increment",
-          outputs: [],
+          name: "createRoom",
+          outputs: [
+            {
+              internalType: "address",
+              name: "roomAddress",
+              type: "address",
+            },
+          ],
           stateMutability: "nonpayable",
           type: "function",
         },
         {
           inputs: [],
-          name: "protocolId",
+          name: "getAllRooms",
+          outputs: [
+            {
+              internalType: "address[]",
+              name: "",
+              type: "address[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getRoomCount",
           outputs: [
             {
               internalType: "uint256",
@@ -139,12 +296,93 @@ const deployedContracts = {
               type: "uint256",
             },
           ],
-          stateMutability: "pure",
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "getRoomsByOwner",
+          outputs: [
+            {
+              internalType: "address[]",
+              name: "",
+              type: "address[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "isValidRoom",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "rooms",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "roomsByOwner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 9368216,
+      deployedOnBlock: 9816343,
     },
   },
 } as const;
