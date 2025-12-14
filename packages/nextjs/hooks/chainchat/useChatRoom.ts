@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWagmiEthers } from "../wagmi/useWagmiEthers";
 import { CHATROOM_ABI } from "./useChatRoomFactory";
-import { FhevmDecryptionSignature, FhevmInstance, useFHEEncryption, useInMemoryStorage } from "@fhevm-sdk";
+import { FhevmDecryptionSignature, FhevmInstance, toHex, useFHEEncryption, useInMemoryStorage } from "@fhevm-sdk";
 import { ethers } from "ethers";
 
 interface Message {
@@ -352,12 +352,10 @@ export const useChatRoom = (params: {
         }
 
         setMessage("Sending transaction...");
-        // Convert Uint8Array handles to hex bytes32 strings
-        const hexHandles = encrypted.handles.map((h: Uint8Array) => 
-          "0x" + Buffer.from(h).toString("hex").padStart(64, "0")
-        );
+        // Convert Uint8Array handles to hex bytes32 strings (exactly as template does)
+        const hexHandles = encrypted.handles.map((h: Uint8Array) => toHex(h));
         // Convert inputProof to hex bytes string
-        const hexProof = "0x" + Buffer.from(encrypted.inputProof).toString("hex");
+        const hexProof = toHex(encrypted.inputProof);
         
         const tx = await contract.sendMessage(hexHandles, hexProof, alias);
         await tx.wait();
