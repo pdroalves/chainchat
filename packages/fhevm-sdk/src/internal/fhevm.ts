@@ -33,9 +33,23 @@ const isFhevmInitialized = (): boolean => {
   return window.relayerSDK.__initialized__ === true;
 };
 
-const fhevmLoadSDK: FhevmLoadSDKType = () => {
+const fhevmLoadSDK: FhevmLoadSDKType = async () => {
   const loader = new RelayerSDKLoader({ trace: console.log });
-  return loader.load();
+  await loader.load();
+  
+  // Patch the relayer URL immediately after SDK loads
+  // The old domain (relayer.testnet.zama.cloud) is no longer resolving
+  // The new domain is relayer.testnet.zama.org
+  if (isFhevmWindowType(window)) {
+    const config = window.relayerSDK.SepoliaConfig;
+    if (config && config.relayerUrl && config.relayerUrl.includes("zama.cloud")) {
+      (config as any).relayerUrl = config.relayerUrl.replace(
+        "relayer.testnet.zama.cloud",
+        "relayer.testnet.zama.org"
+      );
+      console.log("[fhevm] Patched relayerUrl to use .org domain");
+    }
+  }
 };
 
 const fhevmInitSDK: FhevmInitSDKType = async (
@@ -292,13 +306,8 @@ export const createFhevmInstance = async (parameters: {
   const pub = await publicKeyStorageGet(aclAddress);
   throwIfAborted();
 
-  // Patch the relayer URL to use the new domain (.org instead of .cloud which is down)
-  const patchedRelayerUrl = (relayerSDK.SepoliaConfig.relayerUrl || "")
-    .replace("relayer.testnet.zama.cloud", "relayer.testnet.zama.org");
-
   const config: FhevmInstanceConfig = {
     ...relayerSDK.SepoliaConfig,
-    relayerUrl: patchedRelayerUrl || relayerSDK.SepoliaConfig.relayerUrl,
     network: providerOrUrl,
     publicKey: pub.publicKey,
     publicParams: pub.publicParams,
