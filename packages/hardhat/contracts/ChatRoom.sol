@@ -36,8 +36,8 @@ contract ChatRoom {
     uint256 public messageCount;
 
     Message[] internal messages;
-    // messageId => chunkIndex => encrypted byte
-    mapping(uint256 => mapping(uint256 => euint8)) internal messageChunks;
+    // messageId => chunkIndex => encrypted 32-byte chunk
+    mapping(uint256 => mapping(uint256 => euint256)) internal messageChunks;
 
     mapping(address => UserInfo) public users;
     mapping(address => uint256) public decryptAccessCursor;
@@ -133,18 +133,19 @@ contract ChatRoom {
     }
 
     function sendMessage(
-        bytes32[] calldata encryptedHandles,
+        externalEuint256[] calldata encryptedHandles,
         bytes calldata inputProof,
         string calldata senderAlias
     ) external onlyMember notDestroyed {
-        require(encryptedHandles.length > 0 && encryptedHandles.length <= 256, "ChatRoom: invalid message length");
+        // Each chunk is 32 bytes (euint256), max 32 chunks = 1KB max message
+        require(encryptedHandles.length > 0 && encryptedHandles.length <= 32, "ChatRoom: invalid chunk count");
 
         uint256 msgId = messageCount;
         uint256 chunkCount = encryptedHandles.length;
 
         // Store encrypted chunks
         for (uint256 i = 0; i < chunkCount; i++) {
-            euint8 chunk = FHE.asEuint8(encryptedHandles[i], inputProof);
+            euint256 chunk = FHE.fromExternal(encryptedHandles[i], inputProof);
             messageChunks[msgId][i] = chunk;
             // Grant decrypt access to all current members
             for (uint256 j = 0; j < memberList.length; j++) {
@@ -155,9 +156,15 @@ contract ChatRoom {
             }
         }
 
+        string memory _alias;
+        if (bytes(senderAlias).length > 0) {
+            _alias = senderAlias;
+        } else {
+            _alias = users[msg.sender].currentAlias;
+        }
         messages.push(Message({
             sender: msg.sender,
-            senderAlias: bytes(senderAlias).length > 0 ? senderAlias : users[msg.sender].currentAlias,
+            senderAlias: _alias,
             timestamp: block.timestamp,
             blockNumber: block.number,
             chunkCount: chunkCount
@@ -341,14 +348,14 @@ contract ChatRoom {
         }
     }
 
-    function getMessageChunk(uint256 messageId, uint256 chunkIndex) external view returns (euint8) {
+    function getMessageChunk(uint256 messageId, uint256 chunkIndex) external view returns (euint256) {
         require(messageId < messageCount, "ChatRoom: invalid message id");
         require(chunkIndex < messages[messageId].chunkCount, "ChatRoom: invalid chunk index");
         return messageChunks[messageId][chunkIndex];
     }
 
     function getMessageHandlesRange(uint256 startId, uint256 count) external view returns (
-        euint8[] memory handles,
+        euint256[] memory handles,
         uint256[] memory chunkCounts
     ) {
         uint256 endId = startId + count;
@@ -363,7 +370,7 @@ contract ChatRoom {
             totalChunks += chunkCounts[i];
         }
 
-        handles = new euint8[](totalChunks);
+        handles = new euint256[](totalChunks);
         uint256 idx = 0;
         for (uint256 i = 0; i < len; i++) {
             uint256 msgId = startId + i;

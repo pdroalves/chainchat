@@ -292,8 +292,13 @@ export const createFhevmInstance = async (parameters: {
   const pub = await publicKeyStorageGet(aclAddress);
   throwIfAborted();
 
+  // Patch the relayer URL to use the new domain (.org instead of .cloud which is down)
+  const patchedRelayerUrl = (relayerSDK.SepoliaConfig.relayerUrl || "")
+    .replace("relayer.testnet.zama.cloud", "relayer.testnet.zama.org");
+
   const config: FhevmInstanceConfig = {
     ...relayerSDK.SepoliaConfig,
+    relayerUrl: patchedRelayerUrl || relayerSDK.SepoliaConfig.relayerUrl,
     network: providerOrUrl,
     publicKey: pub.publicKey,
     publicParams: pub.publicParams,

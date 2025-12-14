@@ -61,7 +61,8 @@ export const useChatRoom = (params: {
 
   const userAddress = accounts?.[0];
 
-  const decryptedByteCacheRef = useRef<Map<string, number>>(new Map());
+  // Cache stores euint256 values as bigint (each represents 32 bytes)
+  const decryptedChunkCacheRef = useRef<Map<string, bigint>>(new Map());
   const decryptInFlightRef = useRef<Set<string>>(new Set());
   const didJustJoinRef = useRef<boolean>(false);
   const decryptSigRef = useRef<FhevmDecryptionSignature | null>(null);
@@ -204,7 +205,7 @@ export const useChatRoom = (params: {
         let content = isMember ? "🔐 Encrypted" : "🔒 Join to view";
         let isDecrypted = false;
         if (handlesForMsg && handlesForMsg.length > 0) {
-          const maybeDecoded = decodeHandlesToString(handlesForMsg, decryptedByteCacheRef.current);
+          const maybeDecoded = decodeChunksToString(handlesForMsg, decryptedChunkCacheRef.current);
           if (maybeDecoded !== null) {
             content = maybeDecoded;
             isDecrypted = true;
@@ -297,22 +298,38 @@ export const useChatRoom = (params: {
       setMessage("Encrypting message...");
 
       try {
-        // Convert message to bytes and encrypt each byte
+        // Convert message to bytes and pack into 32-byte chunks for euint256
         const encoder = new TextEncoder();
         const bytes = encoder.encode(content);
 
-        if (bytes.length > 256) {
-          setMessage("Message too long (max 256 characters)");
+        // Max 32 chunks * 32 bytes = 1024 bytes
+        if (bytes.length > 1024) {
+          setMessage("Message too long (max 1024 bytes)");
           setPendingMessages((prev) => prev.filter((p) => p.id !== pendingId));
           return false;
         }
 
-        // Encrypt using FHE
+        // Pack bytes into 32-byte chunks as bigint for euint256
+        const chunks: bigint[] = [];
+        for (let i = 0; i < bytes.length; i += 32) {
+          const chunk = bytes.slice(i, Math.min(i + 32, bytes.length));
+          // Pad to 32 bytes
+          const padded = new Uint8Array(32);
+          padded.set(chunk);
+          // Convert to bigint (big-endian)
+          let value = 0n;
+          for (let j = 0; j < 32; j++) {
+            value = (value << 8n) | BigInt(padded[j]);
+          }
+          chunks.push(value);
+        }
+
+        // Encrypt using FHE with euint256 (32 bytes per chunk)
         let encrypted;
         try {
           encrypted = await encryptWith((builder) => {
-            for (let i = 0; i < bytes.length; i++) {
-              (builder as any).add8(bytes[i]);
+            for (const chunk of chunks) {
+              (builder as any).add256(chunk);
             }
           });
         } catch (encErr) {
@@ -390,7 +407,7 @@ export const useChatRoom = (params: {
 
   const decryptNeededHandles = useMemo(() => {
     if (!isMember) return [];
-    const cache = decryptedByteCacheRef.current;
+    const cache = decryptedChunkCacheRef.current;
     const inFlight = decryptInFlightRef.current;
     const out: string[] = [];
     for (const msg of messages) {
@@ -441,18 +458,18 @@ export const useChatRoom = (params: {
           sig.durationDays,
         );
 
-        const cache = decryptedByteCacheRef.current;
+        const cache = decryptedChunkCacheRef.current;
         for (const [handle, value] of Object.entries(res)) {
-          // Expect a byte (bigint) for euint8
-          const byteVal = typeof value === "bigint" ? Number(value) : typeof value === "number" ? value : undefined;
-          if (byteVal !== undefined) cache.set(handle, byteVal);
+          // Expect a bigint for euint256 (32 bytes packed)
+          const chunkVal = typeof value === "bigint" ? value : typeof value === "number" ? BigInt(value) : undefined;
+          if (chunkVal !== undefined) cache.set(handle, chunkVal);
         }
 
         // Update message plaintext from cache
         setMessages(prev =>
           prev.map(m => {
             if (!m.handles || m.handles.length === 0) return m;
-            const decoded = decodeHandlesToString(m.handles, cache);
+            const decoded = decodeChunksToString(m.handles, cache);
             if (decoded === null) return m;
             return { ...m, content: decoded, isDecrypted: true };
           }),
@@ -698,15 +715,31 @@ export const useChatRoom = (params: {
   };
 };
 
-function decodeHandlesToString(handles: string[], cache: Map<string, number>): string | null {
-  const bytes: number[] = [];
+/**
+ * Decode euint256 chunks (bigint) back to a UTF-8 string.
+ * Each bigint represents 32 bytes (big-endian packed).
+ */
+function decodeChunksToString(handles: string[], cache: Map<string, bigint>): string | null {
+  const allBytes: number[] = [];
   for (const h of handles) {
-    const b = cache.get(h);
-    if (b === undefined) return null;
-    bytes.push(b);
+    const chunkVal = cache.get(h);
+    if (chunkVal === undefined) return null;
+    // Convert bigint to 32 bytes (big-endian)
+    const bytes: number[] = [];
+    let val = chunkVal;
+    for (let i = 0; i < 32; i++) {
+      bytes.unshift(Number(val & 0xFFn));
+      val = val >> 8n;
+    }
+    allBytes.push(...bytes);
+  }
+  // Trim trailing null bytes (padding)
+  let end = allBytes.length;
+  while (end > 0 && allBytes[end - 1] === 0) {
+    end--;
   }
   try {
-    return new TextDecoder().decode(new Uint8Array(bytes));
+    return new TextDecoder().decode(new Uint8Array(allBytes.slice(0, end)));
   } catch {
     return null;
   }
