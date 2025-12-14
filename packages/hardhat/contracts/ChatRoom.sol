@@ -2,13 +2,14 @@
 pragma solidity ^0.8.24;
 
 import "@fhevm/solidity/lib/FHE.sol";
+import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 /**
  * @title ChatRoom
  * @notice FHE-encrypted chat room for ChainChat
  * @dev Messages are stored encrypted on-chain using fhEVM
  */
-contract ChatRoom {
+contract ChatRoom is SepoliaConfig {
     // ============ Structs ============
 
     struct Message {

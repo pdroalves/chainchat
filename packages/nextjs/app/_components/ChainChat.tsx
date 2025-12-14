@@ -85,7 +85,7 @@ export const ChainChat = () => {
   const { data: blockNumber } = useBlockNumber({ watch: true });
   const [lastBlockTime, setLastBlockTime] = useState<number>(Date.now());
   const [timeSinceBlock, setTimeSinceBlock] = useState<number>(0);
-  const [avgBlockTimeSec, setAvgBlockTimeSec] = useState<number>(12);
+  const [, setAvgBlockTimeSec] = useState<number>(12);
   const prevBlockRef = useRef<bigint | undefined>(undefined);
 
   // Update block time when new block arrives
@@ -200,15 +200,12 @@ export const ChainChat = () => {
     "min-h-screen text-slate-100 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950";
   const shellBg =
     "relative overflow-hidden before:absolute before:inset-0 before:bg-[radial-gradient(900px_circle_at_15%_20%,rgba(34,211,238,0.12),transparent_55%),radial-gradient(700px_circle_at_85%_25%,rgba(168,85,247,0.10),transparent_55%),radial-gradient(800px_circle_at_50%_100%,rgba(56,189,248,0.08),transparent_60%)] before:content-['']";
-  const containerClass = "relative mx-auto w-full max-w-5xl px-4 sm:px-6";
   const cardClass =
     "rounded-2xl border border-white/10 bg-white/5 shadow-[0_12px_40px_-20px_rgba(0,0,0,0.7)] backdrop-blur-xl";
 
   const buttonBase =
     "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed";
   const primaryBtn = buttonBase + " bg-cyan-300 text-slate-950 hover:bg-cyan-200";
-  const secondaryBtn = buttonBase + " bg-white/10 text-white hover:bg-white/15 border border-white/10";
-  const ghostBtn = buttonBase + " bg-transparent text-white/80 hover:bg-white/10";
 
   const inputClass =
     "w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-cyan-300/60 focus:ring-4 focus:ring-cyan-300/10";
